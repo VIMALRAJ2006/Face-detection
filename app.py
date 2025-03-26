@@ -4,6 +4,10 @@ import uuid
 import numpy as np
 import face_recognition
 import speech_recognition as sr
+import pyttsx3
+
+# Initialize text-to-speech engine
+engine = pyttsx3.init()
 
 # Directory to store captured face images
 CAPTURED_FACE_DIR = "captured_faces"
@@ -13,6 +17,9 @@ if not os.path.exists(CAPTURED_FACE_DIR):
 # Load known faces and their names
 known_face_encodings = []
 known_face_names = []
+
+# Keep track of recognized faces to prevent multiple announcements
+seen_faces = set()
 
 # Load previously saved face images
 for filename in os.listdir(CAPTURED_FACE_DIR):
@@ -62,7 +69,14 @@ while True:
         if True in matches:
             match_index = matches.index(True)
             name = known_face_names[match_index]
-            print(f"Welcome back, {name}!")
+
+            # Announce the name only once per session
+            if name not in seen_faces:
+                print(f"Welcome back, {name}!")
+                engine.say(f"Welcome back, {name}!")
+                engine.runAndWait()
+                seen_faces.add(name)  # Mark as seen
+
         else:
             if not captured:  # Capture only if it's a new face
                 # Crop the detected face
@@ -97,6 +111,10 @@ while True:
                 # Add the new face to known faces
                 known_face_encodings.append(face_encoding)
                 known_face_names.append(name)
+
+                # Announce the newly captured name
+                engine.say(f"Nice to meet you, {name}!")
+                engine.runAndWait()
 
                 captured = True  # Ensure only one face is captured
                 break  # Exit the loop after capturing
