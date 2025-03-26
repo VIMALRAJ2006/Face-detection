@@ -43,6 +43,7 @@ recognizer = sr.Recognizer()
 cap = cv2.VideoCapture(0)
 
 captured = False  # Flag to ensure we capture only one face
+exit_announced = False  # Ensures "Finish Shopping" is spoken only once
 
 while True:
     ret, frame = cap.read()
@@ -85,12 +86,23 @@ while True:
                 cv2.waitKey(1)  # Briefly display the captured face
 
                 # Ask the user to say their name
-                print("Please say your name...")
+                print("Please say your name... (or say 'finish shopping' to exit)")
                 with sr.Microphone() as source:
                     recognizer.adjust_for_ambient_noise(source, duration=1)  # Reduce noise
                     try:
                         audio = recognizer.listen(source, timeout=10, phrase_time_limit=5)  # Increased timeout
-                        name = recognizer.recognize_google(audio).strip()
+                        name = recognizer.recognize_google(audio).strip().lower()
+                        
+                        # Check if the user said "finish shopping"
+                        if name == "finish shopping" and not exit_announced:
+                            print("Exiting... Thank you for shopping!")
+                            engine.say("Exiting... Thank you for shopping!")
+                            engine.runAndWait()
+                            exit_announced = True
+                            cap.release()
+                            cv2.destroyAllWindows()
+                            exit()
+
                         print(f"Recognized Name: {name}")
                     except sr.UnknownValueError:
                         print("Sorry, could not understand the name. Using 'Unknown'.")
@@ -125,6 +137,25 @@ while True:
 
     # Display the video feed
     cv2.imshow("Face Recognition", frame)
+
+    # Check if the user wants to exit by saying "finish shopping" (Only once)
+    if not exit_announced:
+        print("Say 'finish shopping' to exit.")
+        with sr.Microphone() as source:
+            recognizer.adjust_for_ambient_noise(source, duration=1)
+            try:
+                audio = recognizer.listen(source, timeout=3, phrase_time_limit=2)
+                command = recognizer.recognize_google(audio).strip().lower()
+                if command == "finish shopping":
+                    print("Exiting... Thank you for shopping!")
+                    engine.say("Exiting... Thank you for shopping!")
+                    engine.runAndWait()
+                    exit_announced = True
+                    break
+            except sr.UnknownValueError:
+                pass
+            except sr.WaitTimeoutError:
+                pass
 
     # Break if user presses 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
