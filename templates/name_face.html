@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name Unknown Face</title>
+</head>
+<body>
+    <h2>Unknown Face Detected</h2>
+    {% if image %}
+        <img src="{{ image }}" width="200">
+    {% endif %}
+    <form action="/name_face" method="post">
+        <label for="name">Enter Name:</label>
+        <input type="text" name="name" required>
+        <button type="submit">Save</button>
+    </form>
+    <br><br>
+    <a href="/">Back to Camera</a>
+</body>
+</html>
